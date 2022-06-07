@@ -187,7 +187,7 @@ local Tab2 = Window:NewTab("Keybinds")
 
 local T2Section1 = Tab2:NewSection("General Keybinds")
 
-T2Section1:NewKeybind("ToggleUI", "Toggle UI visibility", Enum.KeyCode.X, function()
+T2Section1:NewKeybind("ToggleUI", "Toggle UI visibility", Enum.KeyCode.B, function()
 	Library:ToggleUI()
 end)
 
@@ -223,7 +223,12 @@ if not getgenv().medkitKey then
                 
             else
                 if p.Backpack:FindFirstChild(equippedTool.Name) then
-                    p.Character.Humanoid:EquipTool(equippedTool) 
+                    p.Character.Humanoid:EquipTool(equippedTool)
+                    if equippedTool:FindFirstChild("Barrel") then
+                        wait()
+                        keypress(70)
+                        keyrelease(70)
+                    end
                 end
             end
 	    elseif game.Players.LocalPlayer.Character:FindFirstChild("Medkit") then
