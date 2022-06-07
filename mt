@@ -281,10 +281,34 @@ T4Section1:NewToggle("Spam heli (CANT SHOOT)", "Spams helicopters, disabling hel
 end)
 
 --Toggle AFK
-local afk = false
+local tafk = false
 T4Section1:NewButton("Toggle AFK", "Toggle AFK overhead", function()
-    afk = not afk
-    game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(afk)
+    tafk = not tafk
+    game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(tafk)
+end)
+--Always AFK function
+--spawned
+plr.CharacterAdded:Connect(function(c)
+    --spawned
+    repeat wait() until c:WaitForChild("Head"):FindFirstChild("OverheadGui")
+    if getgenv().afk then
+        game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(true)
+    end
+    --changed
+    c.Head.OverheadGui:WaitForChild("Labels"):WaitForChild("AFK"):GetPropertyChangedSignal("Visible"):Connect(function()
+        if getgenv().afk then
+            game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(true)
+        end
+    end)
+end)
+--Always AFK
+T4Section1:NewToggle("Always AFK", "makes u look cool", function(state)
+    if state then
+        getgenv().afk = true
+    else
+        getgenv().afk = false
+    end
+    game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(getgenv().afk)
 end)
 
 --Prep functions
