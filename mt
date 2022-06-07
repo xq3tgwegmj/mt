@@ -2,7 +2,7 @@ getgenv().loadout = {"AK","G36","Medkit","Sword"}
 
 local Library = loadstring(game:HttpGet("https://raw.githubusercontent.com/xHeptc/Kavo-UI-Library/main/source.lua"))()
 
-local Window = Library.CreateLib("aaaaaaaa", "Serpent")
+local Window = Library.CreateLib("aaaaaa", "Serpent")
 
 local plr = game.Players.LocalPlayer
 
@@ -15,7 +15,7 @@ local Tab = Window:NewTab("Toggles")
 local Section = Tab:NewSection("Toggles")
 
 --Quick respawn toggle
-Section:NewToggle("QuickRespawn", "Automatically respawn at a changable rate (options)", function(state)
+Section:NewToggle("QuickRespawn", "Automatically respawn", function(state)
     if state then
         getgenv().QRToggled = true
     else
@@ -23,6 +23,9 @@ Section:NewToggle("QuickRespawn", "Automatically respawn at a changable rate (op
     end
 end)
 getgenv().QRToggled = false
+Section:NewSlider("Delay", "The delay before you auto-respawn", 3, 0, function(s)
+    getgenv().QRDelay = s
+end)
 getgenv().QRDelay = 0
 --Quick respawn function
 plr.CharacterAdded:Connect(function(chr)
@@ -127,17 +130,31 @@ game.Workspace.ChildAdded:Connect(function(c)
     end
 end)
 
-local Section2 = Tab:NewSection("God Mode")
-
-getgenv().GodMethod = ""
---God mode method dropdown
-Section2:NewDropdown("Method", "Method of god mode", {"FF"}, function(currentOption)
-    getgenv().GodMethod = currentOption
+local Section2 = Tab:NewSection("Auto purchase gun")
+--Auto purchase gun function
+plr.CharacterAdded:Connect(function()
+    if getgenv().AGToggled then
+        repeat wait() until #plr.Backpack:GetChildren() > 1
+        game:GetService("ReplicatedStorage").BuyGun:FireServer(getgenv().AGGun)
+    end
+end)
+--Auto purchase gun
+Section2:NewToggle("Auto purchase gun", "Purchase gun on respawn", function(state)
+    if state then
+        getgenv().AGToggled = true
+    else
+        getgenv().AGToggled = false
+    end
+end)
+--Auto purchase gun select gun
+Section2:NewDropdown("Gun", "Purchase this gun on respawn", {"AK","G36","Minigun"}, function(currentOption)
+    getgenv().AGGun = currentOption
 end)
 
-getgenv().GodToggle = false
+local Section3 = Tab:NewSection("God Mode")
 --God mode toggle
-Section2:NewToggle("GodMode", "LPlr.Character.Humanoid.Health = math.huge", function(state)
+getgenv().GodToggle = false
+Section3:NewToggle("GodMode", "LPlr.Character.Humanoid.Health = math.huge", function(state)
 	if state then
 		getgenv().GodToggle = true
 		while wait() do
@@ -157,6 +174,11 @@ Section2:NewToggle("GodMode", "LPlr.Character.Humanoid.Health = math.huge", func
 	else
 		getgenv().GodToggle = false
 	end
+end)
+--God mode method dropdown
+getgenv().GodMethod = ""
+Section3:NewDropdown("Method", "Method of god mode", {"FF"}, function(currentOption)
+    getgenv().GodMethod = currentOption
 end)
 
 --Tab 2 -- KEYBINDS
@@ -182,29 +204,30 @@ end
 --Medkit keybind
 if not getgenv().medkitKey then
 	T2Section1:NewKeybind("Medkit", "Use medkit", Enum.KeyCode.Q, function()
-        local m = game.Players.LocalPlayer.Backpack.Medkit
-        local p = game.Players.LocalPlayer
-        if p.Character:FindFirstChildOfClass("Tool") then
-            print("has tool equipped")
-            equippedTool = p.Character:FindFirstChildOfClass("Tool")
-        else
-            equippedTool = false
-        end
-        
-        p.Character.Humanoid:EquipTool(m)
-        wait(.15)
-        m:Activate()
-        wait(.15)
-        p.Character.Humanoid:UnequipTools()
-        
-        if not equippedTool then
-            
-        else
-            if p.Backpack:FindFirstChild(equippedTool.Name) then
-                print("equipped tool is in backpack")
-                p.Character.Humanoid:EquipTool(equippedTool) 
-                print("equipped tool")
+	    if game.Players.LocalPlayer.Backpack:FindFirstChild("Medkit") then
+            local m = game.Players.LocalPlayer.Backpack.Medkit
+            local p = game.Players.LocalPlayer
+            if p.Character:FindFirstChildOfClass("Tool") then
+                equippedTool = p.Character:FindFirstChildOfClass("Tool")
+            else
+                equippedTool = false
             end
+            
+            p.Character.Humanoid:EquipTool(m)
+            wait(.15)
+            m:Activate()
+            wait(.15)
+            p.Character.Humanoid:UnequipTools()
+            
+            if not equippedTool then
+                
+            else
+                if p.Backpack:FindFirstChild(equippedTool.Name) then
+                    p.Character.Humanoid:EquipTool(equippedTool) 
+                end
+            end
+	    elseif game.Players.LocalPlayer.Character:FindFirstChild("Medkit") then
+            game.Players.LocalPlayer.Character:FindFirstChild("Medkit"):Activate()
         end
 	end)
 end
@@ -215,8 +238,48 @@ local Tab3 = Window:NewTab("Options")
 
 local T3Section1 = Tab3:NewSection("Options")
 
-T3Section1:NewSlider("RespawnDelay", "The delay before you auto-respawn", 3, 0, function(s)
-    getgenv().QRDelay = s
+--Tab 4 -- Other
+
+local Tab4 = Window:NewTab("Other")
+
+local T4Section1 = Tab4:NewSection("Other")
+
+--Purchase gun
+T4Section1:NewDropdown("Purchase gun", "Purchase a gun (takes money)", {"AK","G36","Minigun"}, function(currentOption)
+    game:GetService("ReplicatedStorage").BuyGun:FireServer(currentOption)
+end)
+
+--Toggle capitol gate
+T4Section1:NewButton("Toggle capitol gate", "Open/close the gate to the capitol", function()
+    fireclickdetector(game:GetService("Workspace").HLSDOOR3.Click.ClickDetector)
+end)
+
+--Spawn heli
+T4Section1:NewButton("Spawn heli", "Spawns a helicopter at the helipad", function()
+    fireclickdetector(game:GetService("Workspace").Heli.Button1.ClickDetector)
+end)
+--spam heli function
+function spamHeli()
+    while getgenv().spamHeli do
+        wait()
+        fireclickdetector(game:GetService("Workspace").Heli.Button1.ClickDetector)
+    end
+end
+--spam heli
+T4Section1:NewToggle("Spam heli (CANT SHOOT)", "Spams helicopters, disabling heli spawning (CANT SHOOT)", function(state)
+    if state then
+        getgenv().spamHeli = true
+        spamHeli()
+    else
+        getgenv().spamHeli = false
+    end
+end)
+
+--Toggle AFK
+local afk = false
+T4Section1:NewButton("Toggle AFK", "Toggle AFK overhead", function()
+    afk = not afk
+    game:GetService("ReplicatedStorage").Events_UI.SetAFK:FireServer(afk)
 end)
 
 --Prep functions
